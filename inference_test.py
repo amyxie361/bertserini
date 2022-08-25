@@ -1,11 +1,17 @@
 from bertserini.reader.base import Question, Context
 from bertserini.reader.bert_reader import BERT
-from bertserini.reader.dpr_reader import DPR
+from bertserini.reader.fid_reader import FiD
+#from bertserini.reader.dpr_reader import DPR
 from bertserini.utils.utils import get_best_answer
 from bertserini.experiments.args import *
 from bertserini.retriever.pyserini_retriever import retriever, build_searcher
 
-ENG_reader = "BERT"
+import transformers
+
+transformers.utils.logging.set_verbosity(50)
+
+
+ENG_reader = "FiD"
 do_local_test = True
 do_bm25_test = True
 do_dpr_test = False
@@ -15,7 +21,11 @@ if ENG_reader == "BERT":
     args.model_name_or_path = "rsvp-ai/bertserini-bert-base-squad"
     args.tokenizer_name = "rsvp-ai/bertserini-bert-base-squad"
     bert_reader = BERT(args)
-
+elif ENG_reader == "FiD":
+    args.model_name_or_path = "/data/y247xie/01_exps/FiD/pretrained_models/nq_reader_base"
+    args.tokenizer_name = "/data/y247xie/01_exps/FiD/pretrained_models/nq_reader_base"
+    args.eval_batch_size = 1
+    bert_reader = FiD(args)
 elif ENG_reader == "DPR":
     args.model_name_or_path = "facebook/dpr-reader-multiset-base"
     args.tokenizer_name = "facebook/dpr-reader-multiset-base"
@@ -31,6 +41,7 @@ if do_local_test:
     contexts = [Context('The "Gilded Age" was a term that Mark Twain used to describe the period of the late 19th century when there had been a dramatic expansion of American wealth and prosperity.'),
                 Context('The "Gilded Age"')]
     candidates = bert_reader.predict(question, contexts)
+    print(candidates)
     answer = get_best_answer(candidates, 1.0)
     print("Answer:", answer.text)
 
